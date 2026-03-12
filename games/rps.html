@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>🎉 Rock, Paper, Scissors</title>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+  :root {
+    --win-color: #00e676;
+    --lose-color: #ff5252;
+    --neutral-color: #ffffff;
+    --gold: #ffd700;
+  }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #232126, #382e42);
+    color: #fff;
+    text-align: center;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+  }
+
+  .game-container {
+    padding: 20px;
+    animation: fadeIn 1s ease;
+  }
+
+  h1 {
+    margin-top: 30px;
+    font-size: 2.5rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    color: #e0e0e0;
+    margin-bottom: 20px;
+  }
+
+  .scoreboard {
+    display: flex;
+    justify-content: center;
+    gap: 50px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .score {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px 30px;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s;
+  }
+
+  .score.flash {
+    animation: scoreFlash 0.4s ease;
+  }
+
+  @keyframes scoreFlash {
+    0% { transform: scale(1); box-shadow: 0 0 20px #fff; }
+    50% { transform: scale(1.2); box-shadow: 0 0 30px #fff; }
+    100% { transform: scale(1); box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+  }
+
+  .choice {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    font-size: 3rem;
+    padding: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+
+  .choice:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 20px #fff;
+  }
+
+  .choice.glow-win { box-shadow: 0 0 25px var(--win-color); }
+  .choice.glow-lose { box-shadow: 0 0 25px var(--lose-color); }
+
+  .choices {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin-bottom: 30px;
+  }
+
+  .results {
+    font-size: 1.2rem;
+    min-height: 120px;
+    animation: fadeIn 0.5s ease;
+  }
+
+  #result {
+    font-size: 1.6rem;
+    font-weight: bold;
+    margin-top: 10px;
+  }
+
+  .play-again {
+    background: #ff9800;
+    color: white;
+    font-size: 1rem;
+    padding: 10px 25px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: all 0.5s ease;
+  }
+
+  .play-again.show {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  footer {
+    padding: 10px;
+    font-size: 0.9rem;
+    opacity: 0.7;
+  }
+
+  .stats {
+    margin-top: 15px;
+    font-size: 0.9rem;
+    color: #ccc;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes burst {
+    to { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+  }
+
+  .emoji {
+    position: fixed;
+    font-size: 1.5rem;
+    animation: burst 2s ease-out forwards;
+  }
+
+  .back-button {
+    display: inline-block;
+    margin: 15px auto;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #d8e0eb, #abb1bc);
+    color: #161717cf;
+    font-weight: bold;
+    text-decoration: none;
+    border-radius: 8px;
+    border: 2px solid #e2e7e995;
+    transition: all 0.25s ease;
+    font-size: 1em;
+    box-shadow: 0 0 8px rgba(60, 65, 67, 0.3);
+  }
+
+  .back-button:hover {
+    background: #eaeef0;
+    color: rgb(19, 19, 19);
+    border-color: #e0e8eb;
+    transform: scale(1.05);
+    box-shadow: 0 0 12px rgba(43, 46, 47, 0.6);
+  }
+
+  select {
+    background: #2b2730;
+    color: #fff;
+    border: 1px solid #888;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-family: 'Poppins', sans-serif;
+  }
+</style>
+</head>
+
+<body>
+  <a href="index.html" class="back-button">← Back to Games</a>
+  <div class="game-container">
+    <h1>🎮 Rock, Paper, Scissors</h1>
+    <p class="subtitle">Best of 5 rounds wins the match 🏆</p>
+
+    <label for="difficulty">Difficulty:</label>
+    <select id="difficulty">
+      <option value="easy">Easy</option>
+      <option value="hard">Hard</option>
+      <option value="impossible">Impossible</option>
+    </select>
+
+    <div class="scoreboard">
+      <div class="score" id="user-score-box">
+        <h2>You</h2>
+        <p id="user-score">0</p>
+      </div>
+      <div class="score" id="computer-score-box">
+        <h2>Computer</h2>
+        <p id="computer-score">0</p>
+      </div>
+    </div>
+
+    <p id="streak-display">🔥 Win Streak: 0</p>
+    <p id="best-streak">🏆 Best Streak: 0</p>
+
+    <div class="choices">
+      <button class="choice" data-choice="rock">✊</button>
+      <button class="choice" data-choice="paper">✋</button>
+      <button class="choice" data-choice="scissors">✌️</button>
+    </div>
+
+    <div class="results">
+      <p id="round-info">Choose your move!</p>
+      <p id="user-choice"></p>
+      <p id="computer-choice"></p>
+      <p id="result"></p>
+    </div>
+
+    <button id="play-again" class="play-again">🔄 Play Again</button>
+
+    <div class="stats" id="stats">
+      <p>Total Games: <span id="total-games">0</span> | Wins: <span id="total-wins">0</span> | Losses: <span id="total-losses">0</span> | Ties: <span id="total-ties">0</span></p>
+    </div>
+  </div>
+
+  <footer>
+    <p>Made with ❤️ by You</p>
+  </footer>
+
+  <script>
+    const choices = ["rock", "paper", "scissors"];
+    const emojis = { rock: "✊", paper: "✋", scissors: "✌️" };
+    const computerTaunts = {
+      win: ["Too easy 😎", "You can’t beat me!", "Nice try, human!"],
+      lose: ["Nooo!", "You got lucky!", "How did you do that?!"],
+      tie: ["Hmm, same move!", "We think alike!", "Again? Interesting!"]
+    };
+
+    let userScore = 0, computerScore = 0, roundNum = 1;
+    let streak = 0;
+    let bestStreak = localStorage.getItem("bestStreak") || 0;
+    let totalGames = localStorage.getItem("totalGames") || 0;
+    let totalWins = localStorage.getItem("totalWins") || 0;
+    let totalLosses = localStorage.getItem("totalLosses") || 0;
+    let totalTies = localStorage.getItem("totalTies") || 0;
+
+    const userScoreEl = document.getElementById("user-score");
+    const computerScoreEl = document.getElementById("computer-score");
+    const userScoreBox = document.getElementById("user-score-box");
+    const computerScoreBox = document.getElementById("computer-score-box");
+    const roundInfo = document.getElementById("round-info");
+    const userChoiceEl = document.getElementById("user-choice");
+    const computerChoiceEl = document.getElementById("computer-choice");
+    const resultEl = document.getElementById("result");
+    const playAgainBtn = document.getElementById("play-again");
+    const choiceButtons = document.querySelectorAll(".choice");
+
+    const streakDisplay = document.getElementById("streak-display");
+    const bestStreakDisplay = document.getElementById("best-streak");
+    const totalGamesEl = document.getElementById("total-games");
+    const totalWinsEl = document.getElementById("total-wins");
+    const totalLossesEl = document.getElementById("total-losses");
+    const totalTiesEl = document.getElementById("total-ties");
+
+    bestStreakDisplay.textContent = `🏆 Best Streak: ${bestStreak}`;
+    updateStats();
+
+    choiceButtons.forEach(btn => btn.addEventListener("click", () => playRound(btn.dataset.choice, btn)));
+
+    function getComputerChoice(userChoice) {
+      const difficulty = document.getElementById("difficulty").value;
+      if (difficulty === "easy") {
+        return choices[Math.floor(Math.random() * choices.length)];
+      } else if (difficulty === "hard" && userChoice) {
+        const counter = { rock: "paper", paper: "scissors", scissors: "rock" };
+        return Math.random() < 0.6 ? counter[userChoice] : choices[Math.floor(Math.random() * choices.length)];
+      } else if (difficulty === "impossible" && userChoice) {
+        const counter = { rock: "paper", paper: "scissors", scissors: "rock" };
+        return counter[userChoice];
+      }
+      return choices[Math.floor(Math.random() * choices.length)];
+    }
+
+    function determineWinner(user, computer) {
+      if (user === computer) return "tie";
+      const winRules = { rock: "scissors", paper: "rock", scissors: "paper" };
+      return winRules[user] === computer ? "user" : "computer";
+    }
+
+    function playRound(userChoice, buttonEl) {
+      if (userScore === 3 || computerScore === 3 || roundNum > 6) return;
+
+      const computerChoice = getComputerChoice(userChoice);
+      const winner = determineWinner(userChoice, computerChoice);
+
+      userChoiceEl.textContent = `You chose: ${emojis[userChoice]} (${userChoice})`;
+      computerChoiceEl.textContent = `Computer chose: ${emojis[computerChoice]} (${computerChoice})`;
+
+      choiceButtons.forEach(btn => btn.classList.remove("glow-win", "glow-lose"));
+      if (winner === "user") {
+        buttonEl.classList.add("glow-win");
+        userScore++;
+        streak++;
+        emojiBurst();
+        userScoreBox.classList.add("flash");
+        resultEl.textContent = `🎉 You win this round! 🤖 ${randomTaunt("lose")}`;
+        resultEl.style.color = "var(--win-color)";
+      } else if (winner === "computer") {
+        buttonEl.classList.add("glow-lose");
+        computerScore++;
+        streak = 0;
+        computerScoreBox.classList.add("flash");
+        resultEl.textContent = `🤖 Computer wins this round! ${randomTaunt("win")}`;
+        resultEl.style.color = "var(--lose-color)";
+      } else {
+        resultEl.textContent = `😐 It's a tie! 🤖 ${randomTaunt("tie")}`;
+        resultEl.style.color = "var(--neutral-color)";
+      }
+
+      userScoreEl.textContent = userScore;
+      computerScoreEl.textContent = computerScore;
+      streakDisplay.textContent = `🔥 Win Streak: ${streak}`;
+      if (streak > bestStreak) {
+        bestStreak = streak;
+        localStorage.setItem("bestStreak", bestStreak);
+        bestStreakDisplay.textContent = `🏆 Best Streak: ${bestStreak}`;
+      }
+
+      roundInfo.textContent = `Round ${roundNum} of 5`;
+      if (roundNum <= 5) roundNum++;
+
+      checkMatchEnd();
+    }
+
+    function checkMatchEnd() {
+      if (userScore === 3 || computerScore === 3 || roundNum > 5) {
+        setTimeout(() => {
+          totalGames++;
+          if (userScore > computerScore) {
+            resultEl.textContent = "🏆 You won the match! 🎊";
+            resultEl.style.color = "var(--gold)";
+            totalWins++;
+          } else if (computerScore > userScore) {
+            resultEl.textContent = "💻 Computer won the match! 😅";
+            resultEl.style.color = "var(--lose-color)";
+            totalLosses++;
+          } else {
+            resultEl.textContent = "🤝 It's a tie match!";
+            resultEl.style.color = "var(--neutral-color)";
+            totalTies++;
+          }
+          updateStats();
+          playAgainBtn.classList.add("show");
+        }, 600);
+      }
+    }
+
+    function updateStats() {
+      totalGamesEl.textContent = totalGames;
+      totalWinsEl.textContent = totalWins;
+      totalLossesEl.textContent = totalLosses;
+      totalTiesEl.textContent = totalTies;
+      localStorage.setItem("totalGames", totalGames);
+      localStorage.setItem("totalWins", totalWins);
+      localStorage.setItem("totalLosses", totalLosses);
+      localStorage.setItem("totalTies", totalTies);
+    }
+
+    function emojiBurst() {
+      const emojis = ["🎉", "🔥", "💪", "👏", "🌟"];
+      for (let i = 0; i < 10; i++) {
+        const emoji = document.createElement("span");
+        emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        emoji.classList.add("emoji");
+        emoji.style.left = Math.random() * 100 + "vw";
+        emoji.style.top = "100vh";
+        emoji.style.fontSize = 1 + Math.random() * 1.5 + "rem";
+        document.body.appendChild(emoji);
+        setTimeout(() => emoji.remove(), 2000);
+      }
+    }
+
+    function randomTaunt(type) {
+      const list = computerTaunts[type];
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    playAgainBtn.addEventListener("click", () => {
+      userScore = 0;
+      computerScore = 0;
+      roundNum = 1;
+      userScoreEl.textContent = "0";
+      computerScoreEl.textContent = "0";
+      userChoiceEl.textContent = "";
+      computerChoiceEl.textContent = "";
+      resultEl.textContent = "";
+      roundInfo.textContent = "Choose your move!";
+      playAgainBtn.classList.remove("show");
+      choiceButtons.forEach(btn => btn.classList.remove("glow-win", "glow-lose"));
+    });
+  </script>
+</body>
+</html>

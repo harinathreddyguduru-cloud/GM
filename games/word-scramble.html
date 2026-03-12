@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🔀 Word Scramble Game</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      font-family: "Poppins", sans-serif;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+      margin: 0;
+      padding: 10px;
+    }
+    h1 { color: #00fff5; font-size: 2rem; margin-bottom: 10px; }
+    .game-box {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 420px;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+    }
+    .scrambled {
+      font-size: 1.8rem;
+      font-weight: 600;
+      letter-spacing: 3px;
+      color: #ffcc70;
+      margin: 20px 0;
+      transition: all 0.2s;
+    }
+    input {
+      width: 80%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    button {
+      background: #00fff5;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      margin: 5px;
+      transition: 0.2s;
+    }
+    button:hover {
+      background: #0df5e3;
+      transform: scale(1.05);
+    }
+    .message {
+      font-size: 1.1rem;
+      margin: 10px 0;
+      min-height: 1.3em;
+      transition: all 0.4s;
+    }
+    .attempts {
+      color: #ff6f61;
+      margin-bottom: 10px;
+    }
+    .back-button {
+      display: inline-block;
+      margin-bottom: 15px;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #334155, #1e293b);
+      color: #38bdf8;
+      font-weight: bold;
+      text-decoration: none;
+      border-radius: 8px;
+      border: 2px solid #38bdf8;
+      transition: all 0.25s ease;
+      font-size: 1em;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+    }
+    .back-button:hover {
+      background: #0ea5e9;
+      color: white;
+      border-color: #0ea5e9;
+      transform: scale(1.05);
+      box-shadow: 0 0 12px rgba(14, 165, 233, 0.6);
+    }
+
+    /* New Styles for Animation and Streak */
+    @keyframes correctPop {
+      0% { transform: scale(1) }
+      60% { transform: scale(1.25) }
+      100% { transform: scale(1) }
+    }
+    @keyframes shake {
+      0%, 100% {transform: translateX(0);}
+      20%, 60% {transform: translateX(-10px);}
+      40%, 80% {transform: translateX(10px);}
+    }
+    .encouragement {
+      font-size: 1.25rem;
+      margin: 8px 0;
+      color: #29e7cd;
+      animation: fadeIn 0.6s;
+    }
+    .correct {
+      color: #00ff99;
+      animation: correctPop 0.5s;
+    }
+    .wrong {
+      color: #ff6f61;
+      animation: shake 0.5s;
+    }
+    .streak {
+      background: #16213e;
+      color: #ffd600;
+      padding: 8px 16px;
+      border-radius: 30px;
+      margin-bottom: 12px;
+      font-weight: bold;
+      box-shadow: 0 0 10px #fff70040;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to Games</a>
+  <h1>🔀 Word Scramble Game</h1>
+  <div class="game-box">
+    <div class="streak" id="streak"></div>
+    <div class="scrambled" id="scrambled-word">Loading...</div>
+    <input type="text" id="user-input" placeholder="Your guess..." />
+    <div>
+      <button id="check-btn">Check</button>
+      <button id="new-btn">New Word</button>
+    </div>
+    <p class="attempts" id="attempts"></p>
+    <p class="message" id="message"></p>
+  </div>
+  <script>
+    const words = [
+      // 🔹 Tech & Coding
+      "python", "javascript", "developer", "programming", "algorithm", "function",
+      "variable", "compiler", "debugging", "binary", "database", "framework",
+      "interface", "frontend", "backend", "machine", "learning", "blockchain",
+      "cybersecurity", "processor", "encryption", "virtual", "network", "internet",
+      "hardware", "software", "computer", "digital", "storage", "protocol",
+      "iteration", "condition", "looping", "operator", "parameter", "execution",
+      "artificial", "intelligence", "innovation", "design", "command", "syntax",
+      "script", "terminal", "project", "github", "repository", "functionality",
+      "responsive", "compiler", "editor", "object", "class", "array", "boolean",
+      "null", "string", "dictionary", "tuple", "recursion", "inheritance",
+
+      // 🔹 General Vocabulary
+      "adventure", "beautiful", "courage", "discovery", "energy", "freedom",
+      "happiness", "journey", "knowledge", "laughter", "memory", "nature",
+      "ocean", "passion", "quality", "rainbow", "success", "treasure", "victory",
+      "wonder", "youth", "zephyr", "destiny", "inspire", "moment", "dream",
+      "create", "smile", "focus", "peace", "balance", "breeze", "crystal", "firefly",
+      "galaxy", "harmony", "island", "jungle", "lantern", "midnight", "nebula",
+      "oasis", "phoenix", "river", "sunlight", "tornado", "universe", "vision",
+      "whisper", "zenith",
+
+      // 🔹 Science & Knowledge
+      "gravity", "planet", "galaxy", "ecosystem", "photosynthesis", "evolution",
+      "biology", "chemistry", "physics", "neutron", "electron", "proton", "molecule",
+      "equation", "reaction", "nucleus", "magnetism", "voltage", "resistance",
+      "current", "lightyear", "quantum", "theory", "analysis", "experiment",
+
+      // 🔹 Fun / Miscellaneous
+      "puzzle", "scramble", "keyboard", "gaming", "festival", "holiday", "trophy",
+      "journey", "balloon", "castle", "rainstorm", "shadow", "moonlight",
+      "starlight", "energy", "cookie", "adventure", "thunder", "mountain",
+      "explorer", "fantasy", "secret", "mystery", "candle", "chocolate",
+      "whistle", "sunrise", "flower", "mirror", "horizon", "storm", "dragon"
+    ];
+
+    let originalWord = "";
+    let scrambledWord = "";
+    let attempts = 3;
+    let streak = 0;
+    let bestStreak = 0;
+
+    const scrambledEl = document.getElementById("scrambled-word");
+    const inputEl = document.getElementById("user-input");
+    const messageEl = document.getElementById("message");
+    const attemptsEl = document.getElementById("attempts");
+    const checkBtn = document.getElementById("check-btn");
+    const newBtn = document.getElementById("new-btn");
+    const streakEl = document.getElementById("streak");
+
+    // Encouragement messages
+    const encouragements = [
+      "🌟 Awesome! You got it!",
+      "🎯 Spot on, keep going!",
+      "🚀 Great job!",
+      "🎉 You cracked it!",
+      "👏 Wow, next word?",
+      "💡 Problem solver!",
+      "🔥 Hot streak!"
+    ];
+
+    // Function to show encouragement
+    function showEncouragement(correct) {
+      if (correct) {
+        messageEl.textContent = encouragements[Math.floor(Math.random() * encouragements.length)];
+        messageEl.className = "encouragement correct";
+      } else {
+        messageEl.textContent = "😢 So close, give it another try!";
+        messageEl.className = "encouragement wrong";
+      }
+    }
+
+    function updateStreakDisplay() {
+      streakEl.textContent = `Streak: ${streak} | Best: ${bestStreak}`;
+    }
+
+    // Function to scramble letters
+    function scrambleWord(word) {
+      const chars = word.split("");
+      for (let i = chars.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [chars[i], chars[j]] = [chars[j], chars[i]];
+      }
+      return chars.join("");
+    }
+
+    // Generate new word
+    function newWord() {
+      originalWord = words[Math.floor(Math.random() * words.length)];
+      scrambledWord = scrambleWord(originalWord);
+      while (scrambledWord === originalWord) {
+        scrambledWord = scrambleWord(originalWord);
+      }
+      scrambledEl.textContent = scrambledWord;
+      scrambledEl.className = "scrambled";
+      messageEl.textContent = "";
+      inputEl.value = "";
+      attempts = 3;
+      attemptsEl.textContent = `Attempts left: ${attempts}`;
+      updateStreakDisplay();
+    }
+
+    // Check the user's guess
+    function checkGuess() {
+      const guess = inputEl.value.trim().toLowerCase();
+
+      if (!guess) {
+        messageEl.textContent = "⚠️ Please enter a guess!";
+        messageEl.className = "message";
+        return;
+      }
+
+      if (guess === originalWord) {
+        showEncouragement(true);
+        scrambledEl.textContent = "✅";
+        scrambledEl.className = "scrambled correct";
+        streak++;
+        if (streak > bestStreak) bestStreak = streak;
+        updateStreakDisplay();
+      } else {
+        attempts--;
+        if (attempts > 0) {
+          showEncouragement(false);
+          attemptsEl.textContent = `Attempts left: ${attempts}`;
+          scrambledEl.className = "scrambled wrong";
+        } else {
+          messageEl.textContent = `❌ Out of attempts! The word was: ${originalWord}`;
+          messageEl.className = "encouragement wrong";
+          scrambledEl.textContent = "❌";
+          scrambledEl.className = "scrambled wrong";
+          streak = 0;
+          updateStreakDisplay();
+        }
+      }
+    }
+
+    checkBtn.addEventListener("click", checkGuess);
+    newBtn.addEventListener("click", newWord);
+    inputEl.addEventListener("keydown", e => {
+      if (e.key === "Enter") checkGuess();
+    });
+
+    // Initialize game
+    newWord();
+  </script>
+</body>
+</html>
