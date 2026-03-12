@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>✍️ Word Guessing Hangman</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1:#0f172a;
+    --accent1:#7c3aed;
+    --accent2:#06b6d4;
+    --glass: rgba(255,255,255,0.06);
+    --glass-2: rgba(255,255,255,0.08);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:"Poppins",sans-serif;
+    background: linear-gradient(135deg,#0f172a 0%, #0b1220 50%, #081025 100%);
+    color:#f8fafc;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:28px;
+  }
+
+  /* Main card */
+  .card {
+    width:100%;
+    max-width:520px;
+    border-radius:14px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+    box-shadow: 0 10px 40px rgba(2,6,23,0.6), 0 2px 6px rgba(12,18,40,0.5);
+    padding:20px;
+    position:relative;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,0.04);
+  }
+
+  header{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+  h1{
+    font-size:1.45rem;
+    margin:0;
+    font-weight:700;
+    letter-spacing:0.6px;
+  }
+  .sub {
+    font-size:0.86rem;
+    color: #bcd;
+    opacity:0.9;
+  }
+
+  /* nickname display and small controls */
+  .top-right {
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  .nick-pill{
+    background: linear-gradient(90deg,var(--accent1),var(--accent2));
+    padding:6px 10px;
+    border-radius:999px;
+    font-weight:600;
+    font-size:0.88rem;
+    box-shadow: 0 6px 18px rgba(124,58,237,0.12);
+  }
+  .btn {
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.06);
+    color: #fff;
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;
+    transition: transform .12s ease, background .15s;
+    font-size:0.92rem;
+  }
+  .btn:hover{ transform:translateY(-3px); background:rgba(255,255,255,0.03) }
+
+  /* game area */
+  #hint { font-style:italic; color:#dbeafe; opacity:0.9; margin-bottom:8px; font-size:0.95rem }
+  #word{
+    font-size:2.1rem;
+    letter-spacing:10px;
+    margin:18px 0;
+    font-weight:700;
+    text-transform:uppercase;
+    color:#fff;
+    text-shadow: 0 6px 26px rgba(3,7,18,0.45);
+  }
+  #message { min-height:26px; margin-top:6px; font-weight:700; }
+
+  /* difficulty select inside game */
+  .controls {
+    display:flex;
+    gap:10px;
+    align-items:center;
+    margin-top:4px;
+    flex-wrap:wrap;
+  }
+  select#difficulty {
+    padding:8px 10px;
+    border-radius:8px;
+    border:none;
+    background:var(--glass);
+    color:#685b9b;
+    font-weight:600;
+  }
+
+  /* progress bar */
+  #progress-bar-container {
+    background: rgba(255,255,255,0.06);
+    height:14px;
+    border-radius:999px;
+    margin:14px 0;
+    overflow:hidden;
+    box-shadow: inset 0 -4px 10px rgba(0,0,0,0.35);
+  }
+  #progress-bar {
+    height:100%;
+    width:100%;
+    background: linear-gradient(90deg,#10b981,#06b6d4);
+    transition: width .28s ease, background .18s;
+  }
+
+  /* play again & history floating */
+  .actions { display:flex; gap:8px; margin-top:10px; align-items:center; }
+  #play-again { display:none; }
+  #history-floating {
+    position:fixed;
+    right:18px;
+    bottom:18px;
+    background: linear-gradient(90deg,#0f172a,#071029);
+    border-radius:12px;
+    padding:10px 14px;
+    box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+    border:1px solid rgba(255,255,255,0.04);
+    cursor:pointer;
+    font-weight:700;
+  }
+
+  /* small hint about keyboard */
+  .hint-row { font-size:0.86rem; color:#cfe; opacity:0.85; margin-top:8px }
+
+  /* nickname modal (centered small card on blurred background) */
+  .modal-backdrop{
+    position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+    background: rgba(2,6,23,0.6);
+    backdrop-filter: blur(6px);
+    z-index:1200;
+  }
+  .modal {
+    width:92%;
+    max-width:420px;
+    border-radius:12px;
+    padding:20px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+    box-shadow: 0 18px 50px rgba(2,6,23,0.7);
+    border:1px solid rgba(255,255,255,0.04);
+    text-align:center;
+  }
+  .modal input[type="text"]{
+    width:85%;
+    padding:10px 12px;
+    border-radius:10px;
+    border:none;
+    background:rgba(255,255,255,0.03);
+    color:#fff;
+    font-size:1rem;
+    outline:none;
+    margin-top:12px;
+  }
+  .modal .start {
+    margin-top:14px;
+    padding:10px 16px;
+    border-radius:10px;
+    border:none;
+    background: linear-gradient(90deg,var(--accent1),var(--accent2));
+    color:#fff;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow: 0 8px 22px rgba(124,58,237,0.14);
+  }
+
+  /* history modal in corner */
+  .history-modal {
+    position: fixed;
+    right:18px;
+    bottom:86px;
+    width:320px;
+    max-height:56vh;
+    overflow:auto;
+    border-radius:12px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+    border:1px solid rgba(255,255,255,0.04);
+    padding:12px;
+    box-shadow: 0 18px 50px rgba(2,6,23,0.6);
+    z-index:1300;
+    display:none;
+  }
+  .history-modal h3{ margin:6px 0 10px 0; font-size:1rem }
+  .history-entry{ font-size:0.88rem; color:#dbeafe; margin-bottom:8px; padding-bottom:6px; border-bottom:1px dashed rgba(255,255,255,0.03) }
+
+  /* responsive tweaks */
+  @media (max-width:480px){
+    #word{ font-size:1.6rem; letter-spacing:6px }
+    .history-modal{ right:12px; left:12px; width:auto; bottom:86px }
+  }
+  .back-button {
+  display: inline-block;
+  margin-bottom: 15px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #334155, #1e293b);
+  color: #38bdf8;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 8px;
+  border: 2px solid #38bdf8;
+  transition: all 0.25s ease;
+  font-size: 1em;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+}
+
+.back-button:hover {
+  background: #0ea5e9;
+  color: white;
+  border-color: #0ea5e9;
+  transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(14, 165, 233, 0.6);
+}
+</style>
+</head>
+<body>
+  <div class="card" role="main" aria-label="Hangman game card">
+  <a href="index.html" class="back-button">← Back to Games</a>
+  <header>
+    <div>
+      <h1>✍️ Word Guessing Hangman</h1>
+      <div class="sub">Type letters on your keyboard — guess the word before turns run out.</div>
+    </div>
+    <div class="top-right">
+      <div id="nickDisplay" class="nick-pill" style="display:none">Player</div>
+      <button id="openNick" class="btn" title="Change nickname">Change</button>
+    </div>
+  </header>
+
+  <div id="game-area">
+    <div id="hint">Hint will appear here</div>
+
+    <!-- difficulty inside game -->
+    <div class="controls">
+      <label style="font-weight:600;color:#dbeafe;">Difficulty:</label>
+      <select id="difficulty">
+        <option value="easy">Easy</option>
+        <option value="medium" selected>Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+    </div>
+
+    <div id="word">_ _ _ _ _</div>
+    <div id="progress-bar-container"><div id="progress-bar"></div></div>
+    <div id="message"></div>
+
+    <div class="hint-row">Tip: Use your system keyboard. Only A–Z letters count.</div>
+
+    <div class="actions">
+      <button id="play-again" class="btn">🔁 Play Again</button>
+      <button id="new-word" class="btn">🎲 New Word</button>
+    </div>
+  </div>
+</div>
+
+<!-- floating history button -->
+<div id="history-floating" title="Game History (click)">📜 Game History</div>
+
+<!-- nickname modal (centered small card) -->
+<div id="nick-modal" class="modal-backdrop" style="display:none" aria-hidden="true">
+  <div class="modal" role="dialog" aria-labelledby="nickTitle">
+    <h2 id="nickTitle">Welcome — enter a nickname</h2>
+    <div class="sub" style="margin-top:6px; color:#cfe">This name is used to save your history (stored locally).</div>
+    <input id="nickInput" type="text" placeholder="Your nickname (e.g. Alex)" maxlength="24" />
+    <div style="margin-top:12px">
+      <button id="nickStart" class="start">Start Playing</button>
+    </div>
+  </div>
+</div>
+
+<!-- history modal corner -->
+<div id="history-modal" class="history-modal" aria-hidden="true">
+  <h3>📜 Game History</h3>
+  <div id="history-list" aria-live="polite"></div>
+  <div style="text-align:right;margin-top:8px"><button id="closeHistory" class="btn">Close</button></div>
+</div>
+
+<!-- audio -->
+<audio id="sound-correct" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
+<audio id="sound-wrong" src="https://actions.google.com/sounds/v1/cartoon/clang.ogg" preload="auto"></audio>
+<audio id="sound-win" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" preload="auto"></audio>
+<audio id="sound-lose" src="https://actions.google.com/sounds/v1/cartoon/failure_trumpet.ogg" preload="auto"></audio>
+
+<script>
+/* ============================
+   Game data & storage helpers
+   ============================ */
+
+const WORDS = {
+  easy: {
+    cat: "A small pet that meows",
+    sun: "The star at the center of our solar system",
+    book: "You read it",
+    tree: "Grows leaves and branches",
+    chair: "You sit on it",
+    car: "Four-wheeled vehicle",
+    moon: "Earth's natural satellite",
+    pen: "Used to write",
+    cup: "Holds liquids",
+    star: "Shines at night"
+  },
+  medium: {
+    python: "A programming language (or a snake)",
+    boolean: "True or False data type",
+    debug: "Find and fix problems",
+    variable: "Stores a value in code",
+    syntax: "Rules that structure code",
+    laptop: "A portable computer",
+    window: "Lets light into a room",
+    server: "Provides data/services to clients",
+    module: "Reusable piece of code",
+    object: "Instance of a class"
+  },
+  hard: {
+    recursion: "Function that calls itself",
+    algorithm: "Step-by-step problem solving",
+    polymorphism: "One interface, many implementations",
+    encapsulation: "Hiding implementation details",
+    abstraction: "Expose essentials, hide complexity",
+    constructor: "Initializes an object",
+    inheritance: "Acquire features from another class",
+    asynchronous: "Doesn't block program flow",
+    optimization: "Making something run faster",
+    concurrency: "Multiple tasks at once"
+  }
+};
+
+/* LocalStorage key used to persist history */
+const LS_KEY = "hangman_game_history_v1";
+
+/* read / write history (object keyed by nickname -> array of entries) */
+function readHistoryFromStorage(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  }catch(e){ return {}; }
+}
+function writeHistoryToStorage(obj){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(obj)); }catch(e){}
+}
+
+/* ============================
+   UI elements
+   ============================ */
+
+const nickModal = document.getElementById("nick-modal");
+const nickInput = document.getElementById("nickInput");
+const nickStart = document.getElementById("nickStart");
+const nickDisplay = document.getElementById("nickDisplay");
+const openNick = document.getElementById("openNick");
+
+const difficultyEl = document.getElementById("difficulty");
+const hintEl = document.getElementById("hint");
+const wordEl = document.getElementById("word");
+const messageEl = document.getElementById("message");
+const playAgainBtn = document.getElementById("play-again");
+const newWordBtn = document.getElementById("new-word");
+const progressBar = document.getElementById("progress-bar");
+
+const historyFloating = document.getElementById("history-floating");
+const historyModal = document.getElementById("history-modal");
+const historyList = document.getElementById("history-list");
+const closeHistory = document.getElementById("closeHistory");
+
+/* sounds */
+const sCorrect = document.getElementById("sound-correct");
+const sWrong = document.getElementById("sound-wrong");
+const sWin = document.getElementById("sound-win");
+const sLose = document.getElementById("sound-lose");
+
+/* ============================
+   Game state
+   ============================ */
+
+let nickname = null;         // session-based (sessionStorage)
+let difficulty = "medium";   // chosen inside game
+let word = "";               // current word (lowercase)
+let hint = "";
+let turns = 5;
+let guesses = new Set();     // guessed letters
+let revealedIndices = new Set();
+let listening = false;       // keyboard listener active flag
+
+/* ============================
+   Nickname handling (session)
+   ============================ */
+
+function openNickModal(show=true){
+  nickModal.style.display = show ? "flex" : "none";
+  nickModal.setAttribute("aria-hidden", show ? "false" : "true");
+  if(show){ nickInput.focus(); }
+}
+
+function saveNicknameToSession(name){
+  sessionStorage.setItem("hangman_nick", name);
+  nickname = name;
+  nickDisplay.textContent = nickname;
+  nickDisplay.style.display = "inline-block";
+}
+
+function loadNicknameFromSession(){
+  const n = sessionStorage.getItem("hangman_nick");
+  if(n && n.trim()){
+    nickname = n;
+    nickDisplay.textContent = nickname;
+    nickDisplay.style.display = "inline-block";
+    openNickModal(false);
+    return true;
+  }
+  openNickModal(true);
+  return false;
+}
+
+/* ============================
+   Word selection & display
+   ============================ */
+
+function chooseWordForDifficulty(diff){
+  const pool = WORDS[diff] || WORDS.medium;
+  const keys = Object.keys(pool);
+  const k = keys[Math.floor(Math.random()*keys.length)];
+  return [k, pool[k]];
+}
+
+function revealProgress(){
+  return word.split("").map((ch,i) => revealedIndices.has(i) ? ch.toUpperCase() : "_").join(" ");
+}
+
+function updateProgressBar(){
+  progressBar.style.width = (turns/5*100) + "%";
+  progressBar.style.background = turns > 2 ? "linear-gradient(90deg,#10b981,#06b6d4)" : (turns===2 ? "linear-gradient(90deg,#f59e0b,#fb7185)" : "linear-gradient(90deg,#ef4444,#f97316)");
+}
+
+function updateDisplay(){
+  hintEl.textContent = hint ? "Hint: " + hint : "";
+  wordEl.textContent = revealProgress();
+  updateProgressBar();
+}
+
+/* ============================
+   Game flow: start, guess, end
+   ============================ */
+
+function startNewRound(){
+  // choose difficulty from UI (in-game)
+  difficulty = difficultyEl.value || "medium";
+  const picked = chooseWordForDifficulty(difficulty);
+  word = picked[0].toLowerCase();
+  hint = picked[1] || "";
+  turns = 5;
+  guesses = new Set();
+  revealedIndices = new Set();
+  // nothing revealed at start; optionally reveal spaces (not necessary here)
+  messageEl.textContent = `Good luck, ${nickname || "Player"} — press letters on your keyboard.`;
+  updateDisplay();
+  playAgainBtn.style.display = "none";
+  // ensure keyboard listening
+  if(!listening) { document.addEventListener("keydown", keyHandler); listening = true; }
+}
+
+function revealAll(){
+  for(let i=0;i<word.length;i++) revealedIndices.add(i);
+}
+
+function checkWinCondition(){
+  return [...word].every((_,i) => revealedIndices.has(i));
+}
+
+function endRound(result){
+  // result: "Win" or "Lose"
+  if(result === "Win"){ sWin.currentTime=0; sWin.play(); }
+  else { sLose.currentTime=0; sLose.play(); }
+  // save to localStorage history
+  saveHistoryEntry(result);
+  // stop listening
+  if(listening){ document.removeEventListener("keydown", keyHandler); listening = false; }
+  playAgainBtn.style.display = "inline-block";
+}
+
+/* ============================
+   Guess handling (keyboard)
+   ============================ */
+
+function handleGuessLetter(letter){
+  if(!letter || !/^[a-z]$/.test(letter)) return;
+  if(guesses.has(letter)) {
+    // already guessed -> small feedback
+    messageEl.textContent = `You already tried "${letter.toUpperCase()}"`;
+    return;
+  }
+  guesses.add(letter);
+  if(word.includes(letter)){
+    // reveal positions
+    for(let i=0;i<word.length;i++){
+      if(word[i] === letter) revealedIndices.add(i);
+    }
+    sCorrect.currentTime = 0; sCorrect.play();
+    messageEl.textContent = `✅ Correct: "${letter.toUpperCase()}"`;
+  } else {
+    turns -= 1;
+    sWrong.currentTime = 0; sWrong.play();
+    messageEl.textContent = `❌ Wrong: "${letter.toUpperCase()}" — turns left: ${turns}`;
+  }
+  updateDisplay();
+  if(checkWinCondition()){
+    revealAll(); updateDisplay();
+    messageEl.textContent = `🎉 You won! The word was "${word.toUpperCase()}"`;
+    endRound("Win");
+  } else if(turns <= 0){
+    revealAll(); updateDisplay();
+    messageEl.textContent = `😢 You lost — the word was "${word.toUpperCase()}"`;
+    endRound("Lose");
+  }
+}
+
+/* keyboard handler */
+function keyHandler(e){
+  // ignore if modifier keys pressed
+  if(e.ctrlKey || e.altKey || e.metaKey) return;
+  const k = e.key.toLowerCase();
+  // only letters a-z
+  if(/^[a-z]$/.test(k)) {
+    handleGuessLetter(k);
+  }
+}
+
+/* ============================
+   History (localStorage persisted)
+   ============================ */
+
+function saveHistoryEntry(result){
+  if(!nickname) return;
+  const store = readHistoryFromStorage();
+  if(!store[nickname]) store[nickname] = [];
+  store[nickname].push({
+    word: word,
+    difficulty: difficulty,
+    result: result,
+    date: new Date().toLocaleString()
+  });
+  writeHistoryToStorage(store);
+  refreshHistoryUI();
+}
+
+function refreshHistoryUI(){
+  const store = readHistoryFromStorage();
+  const entries = (nickname && store[nickname]) ? store[nickname].slice().reverse() : [];
+  if(!entries || entries.length === 0){
+    historyList.innerHTML = "<div style='color:#a8b3c7;font-size:0.95rem'>No history for this nickname yet.</div>";
+    return;
+  }
+  historyList.innerHTML = entries.map(e => {
+    const color = e.result === "Win" ? "#10b981" : "#f97316";
+    return `<div class="history-entry">
+      <div style="font-weight:700;color:#fff">${e.word.toUpperCase()} <span style="float:right;color:${color}">${e.result}</span></div>
+      <div style="font-size:0.82rem;color:#cfe">${e.difficulty.toUpperCase()} • ${e.date}</div>
+    </div>`;
+  }).join("");
+}
+
+/* ============================
+   Event bindings & UI actions
+   ============================ */
+
+/* Nick modal start button */
+nickStart.addEventListener("click", ()=>{
+  const name = (nickInput.value || "").trim() || "Player";
+  saveNicknameToSession(name);
+  nickModal.style.display = "none";
+  // start first round
+  startNewRound();
+  refreshHistoryUI();
+});
+
+/* Open nickname modal (change nickname) */
+openNick.addEventListener("click", ()=>{
+  nickInput.value = nickname || "";
+  nickModal.style.display = "flex";
+  nickModal.setAttribute("aria-hidden", "false");
+  nickInput.focus();
+});
+
+/* New word button (start new round without saving anything) */
+newWordBtn.addEventListener("click", ()=>{
+  startNewRound();
+});
+
+/* Play again (restarts with same difficulty & nickname) */
+playAgainBtn.addEventListener("click", ()=>{
+  startNewRound();
+});
+
+/* History floating open/close */
+historyFloating.addEventListener("click", ()=>{
+  // toggle
+  if(historyModal.style.display === "block") {
+    historyModal.style.display = "none";
+    historyModal.setAttribute("aria-hidden","true");
+  } else {
+    refreshHistoryUI();
+    historyModal.style.display = "block";
+    historyModal.setAttribute("aria-hidden","false");
+  }
+});
+closeHistory.addEventListener("click", ()=>{
+  historyModal.style.display = "none";
+  historyModal.setAttribute("aria-hidden","true");
+});
+
+/* On difficulty change: immediately pick a new word of that difficulty */
+difficultyEl.addEventListener("change", ()=>{
+  // only change current round if game is active
+  startNewRound();
+});
+
+/* Prevent accidental scrolling when history is open and using arrow keys (optional) */
+window.addEventListener("keydown", (e) => {
+  if(historyModal.style.display === "block" && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+    e.preventDefault();
+  }
+});
+
+/* ============================
+   Initialization: load nickname or show modal
+   ============================ */
+
+function init(){
+  const loaded = loadNicknameFromSession();
+  // show nick modal if not loaded; if loaded, start game immediately
+  if(loaded){
+    refreshHistoryUI();
+    startNewRound();
+  } else {
+    openNickModal(true);
+  }
+  // wire change nickname quick click on nick pill (also open modal)
+  nickDisplay.addEventListener("click", ()=> openNickModal(true));
+}
+
+/* kick off */
+init();
+
+</script>
+</body>
+</html>

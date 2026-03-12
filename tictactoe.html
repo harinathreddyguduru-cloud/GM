@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tic Tac Toe</title>
+
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #0f172a;
+      color: #fff;
+      flex-direction: column;
+      margin: 0;
+    }
+
+    .game-container {
+      text-align: center;
+      background: #1e293b;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      font-size: 2.2em;
+      margin-bottom: 15px;
+      color: #38bdf8;
+    }
+
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-gap: 10px;
+      margin: 20px auto;
+    }
+
+    .cell {
+      width: 100px;
+      height: 100px;
+      background: #0f172a;
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2.5em;
+      cursor: pointer;
+      transition: 0.25s;
+      box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.05);
+    }
+
+    .cell:hover {
+      background: #334155;
+      transform: scale(1.05);
+    }
+
+    .o {
+      color: #22d3ee;
+    }
+
+    .x {
+      color: #f87171;
+    }
+
+    .restart-button {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: 0.2s;
+    }
+
+    .restart-button:hover {
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
+      transform: translateY(-2px);
+    }
+
+    .back-button {
+      color: #38bdf8;
+      text-decoration: none;
+      font-size: 1.1em;
+      margin-bottom: 10px;
+      display: inline-block;
+      transition: 0.2s;
+    }
+
+    .back-button:hover {
+      color: #0ea5e9;
+    }
+
+    .difficulty-container {
+      margin: 10px 0 20px 0;
+    }
+
+    .difficulty-container label {
+      font-weight: bold;
+      margin-right: 10px;
+      font-size: 1.1em;
+      color: #a5b4fc;
+    }
+
+    #difficulty {
+      padding: 8px 15px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      background: #334155;
+      color: #e2e8f0;
+      font-size: 1em;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    #difficulty:hover {
+      background: #475569;
+    }
+
+    .game-status {
+      margin: 10px 0;
+      font-size: 1.1em;
+      color: #fbbf24;
+      font-weight: 500;
+    }
+
+    /* ✨ Win Animation */
+    @keyframes winPulse {
+      0% { color: #22c55e; text-shadow: 0 0 5px #22c55e; transform: scale(1); }
+      50% { color: #4ade80; text-shadow: 0 0 15px #4ade80; transform: scale(1.1); }
+      100% { color: #22c55e; text-shadow: 0 0 5px #22c55e; transform: scale(1); }
+    }
+
+    .win-animation {
+      animation: winPulse 1s ease-in-out infinite;
+      font-weight: bold;
+    }
+
+    @keyframes cellFlash {
+      0% { background-color: #0f172a; }
+      50% { background-color: #22c55e; }
+      100% { background-color: #0f172a; }
+    }
+
+    .cell-win {
+      animation: cellFlash 0.5s ease-in-out 3;
+    }
+    .back-button {
+  display: inline-block;
+  margin-bottom: 15px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #334155, #1e293b);
+  color: #38bdf8;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 8px;
+  border: 2px solid #38bdf8;
+  transition: all 0.25s ease;
+  font-size: 1em;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+}
+
+.back-button:hover {
+  background: #0ea5e9;
+  color: white;
+  border-color: #0ea5e9;
+  transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(14, 165, 233, 0.6);
+}
+
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to Games</a>
+  <div class="game-container">
+    <h1>Tic Tac Toe</h1>
+
+    <div class="difficulty-container">
+      <label for="difficulty">Select Difficulty:</label>
+      <select id="difficulty">
+        <option value="easy">Easy 😎</option>
+        <option value="medium">Medium 😐</option>
+        <option value="hard" selected>Hard 💀</option>
+      </select>
+    </div>
+
+    <div class="game-status">Your turn (O)</div>
+
+    <div class="game-board">
+      <div class="cell" data-cell></div>
+      <div class="cell" data-cell></div>
+      <div class="cell" data-cell></div>
+      <div class="cell" data-cell></div>
+      <div class="cell" data-cell></div>
+      <div class="cell" data-cell></div>
+      <div class="cell" data-cell></div>
+      <div class="cell" data-cell></div>
+      <div class="cell" data-cell></div>
+    </div>
+
+    <button class="restart-button">Restart Game</button>
+  </div>
+
+  <script>
+    const cells = document.querySelectorAll("[data-cell]");
+    const statusText = document.querySelector(".game-status");
+    const restartBtn = document.querySelector(".restart-button");
+    const difficultySelect = document.querySelector("#difficulty");
+
+    const PLAYER = "O";
+    const COMPUTER = "X";
+    let currentPlayer = PLAYER;
+    let gameActive = true;
+    let gameBoard = Array(9).fill("");
+    let difficulty = "hard";
+
+    const winningCombos = [
+      [0,1,2],[3,4,5],[6,7,8],
+      [0,3,6],[1,4,7],[2,5,8],
+      [0,4,8],[2,4,6]
+    ];
+
+    function startGame() {
+      cells.forEach(cell => {
+        cell.classList.remove("x", "o", "cell-win");
+        cell.textContent = "";
+        cell.addEventListener("click", handleClick, { once: true });
+      });
+      gameBoard = Array(9).fill("");
+      currentPlayer = PLAYER;
+      gameActive = true;
+      statusText.textContent = "Your turn (O)";
+      statusText.classList.remove("win-animation");
+    }
+
+    function handleClick(e) {
+      if (!gameActive) return;
+      const cell = e.target;
+      const index = [...cells].indexOf(cell);
+      if (gameBoard[index] !== "") return;
+
+      makeMove(index, PLAYER);
+
+      if (checkWinner(gameBoard, PLAYER)) {
+        endGame("🎉 You win!", PLAYER);
+        return;
+      } else if (isDraw()) {
+        endGame("🤝 It's a draw!");
+        return;
+      }
+
+      statusText.textContent = "Computer's turn...";
+      setTimeout(() => {
+        const move = computerMove(gameBoard);
+        makeMove(move, COMPUTER);
+        if (checkWinner(gameBoard, COMPUTER)) {
+          endGame("💻 Computer wins!", COMPUTER);
+        } else if (isDraw()) {
+          endGame("🤝 It's a draw!");
+        } else {
+          statusText.textContent = "Your turn (O)";
+        }
+      }, 500);
+    }
+
+    function makeMove(index, player) {
+      gameBoard[index] = player;
+      cells[index].textContent = player;
+      cells[index].classList.add(player === PLAYER ? "o" : "x");
+    }
+
+    function endGame(message, winner = null) {
+      gameActive = false;
+      statusText.textContent = message;
+      statusText.classList.add("win-animation");
+      cells.forEach(cell => cell.removeEventListener("click", handleClick));
+
+      if (winner) {
+        const combo = getWinningCombo(gameBoard, winner);
+        if (combo) {
+          combo.forEach(i => cells[i].classList.add("cell-win"));
+        }
+      }
+    }
+
+    function getWinningCombo(board, player) {
+      return winningCombos.find(combo => combo.every(i => board[i] === player));
+    }
+
+    function checkWinner(board, player) {
+      return winningCombos.some(combo => combo.every(i => board[i] === player));
+    }
+
+    function isDraw() {
+      return gameBoard.every(cell => cell !== "");
+    }
+
+    function computerMove(board) {
+      const empty = board.map((v, i) => v === "" ? i : null).filter(v => v !== null);
+      if (difficulty === "easy") {
+        return empty[Math.floor(Math.random() * empty.length)];
+      } else if (difficulty === "medium") {
+        if (Math.random() < 0.6) return bestMove(board);
+        return empty[Math.floor(Math.random() * empty.length)];
+      } else {
+        return bestMove(board);
+      }
+    }
+
+    function bestMove(board) {
+      let bestScore = -Infinity, move;
+      for (let i = 0; i < 9; i++) {
+        if (board[i] === "") {
+          board[i] = COMPUTER;
+          let score = minimax(board, 0, false);
+          board[i] = "";
+          if (score > bestScore) { bestScore = score; move = i; }
+        }
+      }
+      return move;
+    }
+
+    function minimax(board, depth, isMax) {
+      if (checkWinner(board, COMPUTER)) return 10 - depth;
+      if (checkWinner(board, PLAYER)) return depth - 10;
+      if (isDraw()) return 0;
+
+      if (isMax) {
+        let best = -Infinity;
+        for (let i = 0; i < 9; i++) {
+          if (board[i] === "") {
+            board[i] = COMPUTER;
+            best = Math.max(best, minimax(board, depth + 1, false));
+            board[i] = "";
+          }
+        }
+        return best;
+      } else {
+        let best = Infinity;
+        for (let i = 0; i < 9; i++) {
+          if (board[i] === "") {
+            board[i] = PLAYER;
+            best = Math.min(best, minimax(board, depth + 1, true));
+            board[i] = "";
+          }
+        }
+        return best;
+      }
+    }
+
+    restartBtn.addEventListener("click", startGame);
+    difficultySelect.addEventListener("change", e => {
+      difficulty = e.target.value;
+      startGame();
+    });
+    startGame();
+  </script>
+</body>
+</html>

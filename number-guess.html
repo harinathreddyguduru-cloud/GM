@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎯 Number Guessing Game</title>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b, #334155, #0f172a);
+      background-size: 400% 400%;
+      animation: gradientShift 10s ease infinite;
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      margin: 0;
+      transition: background 0.5s, color 0.5s;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .game-container {
+      text-align: center;
+      background: rgba(30, 41, 59, 0.9);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.15);
+      width: 90%;
+      max-width: 420px;
+      position: relative;
+    }
+
+    h1 {
+      font-size: 1.8em;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      margin-bottom: 15px;
+    }
+
+    .game-status {
+      margin-bottom: 15px;
+      color: #a5b4fc;
+    }
+
+    .input-section {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      width: 120px;
+      text-align: center;
+      font-size: 1em;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      background: #2563eb;
+      color: white;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.25s;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+      transform: scale(1.05);
+    }
+
+    select {
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      background: #334155;
+      color: #fff;
+      font-size: 0.9em;
+      margin-bottom: 15px;
+    }
+
+    .message {
+      font-size: 1.2em;
+      margin: 15px 0;
+      min-height: 30px;
+    }
+
+    .previous-guesses {
+      margin-top: 10px;
+      font-size: 0.9em;
+      color: #94a3b8;
+    }
+
+    .restart-btn {
+      margin-top: 20px;
+      background: #f87171;
+    }
+
+    .restart-btn:hover {
+      background: #ef4444;
+    }
+
+    /* Win animation */
+    @keyframes winPulse {
+      0% { color: #22c55e; text-shadow: 0 0 5px #22c55e; transform: scale(1); }
+      50% { color: #4ade80; text-shadow: 0 0 15px #4ade80; transform: scale(1.1); }
+      100% { color: #22c55e; text-shadow: 0 0 5px #22c55e; transform: scale(1); }
+    }
+
+    .win-animation {
+      animation: winPulse 1s ease-in-out infinite;
+      font-weight: bold;
+    }
+
+    /* 🎊 Emoji Confetti */
+    @keyframes burst {
+      to { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+    }
+    .emoji {
+      position: fixed;
+      bottom: 0;
+      font-size: 1.5rem;
+      animation: burst 2s ease-out forwards;
+      z-index: 999;
+    }
+
+    /* Theme toggle */
+    .switch {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.9em;
+      color: #cbd5e1;
+    }
+
+    .switch input {
+      accent-color: #2563eb;
+      transform: scale(1.2);
+      cursor: pointer;
+    }
+
+    /* Back button */
+    .back-button {
+      display: inline-block;
+      margin-bottom: 15px;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #d8e0eb, #abb1bc);
+      color: #161717cf;
+      font-weight: bold;
+      text-decoration: none;
+      border-radius: 8px;
+      border: 2px solid #e2e7e995;
+      transition: all 0.25s ease;
+      font-size: 1em;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+    }
+
+    .back-button:hover {
+      background: #0ea5e9;
+      color: rgb(19, 19, 19);
+      border-color: #0ea5e9;
+      transform: scale(1.05);
+      box-shadow: 0 0 12px rgba(43, 46, 47, 0.6);
+    }
+  </style>
+</head>
+
+<body>
+  <a href="index.html" class="back-button">← Back to Games</a>
+
+  <div class="game-container">
+    <div class="switch">
+      🌙 <input type="checkbox" id="themeToggle" /> 🌞
+    </div>
+
+    <h1>🎯 Number Guessing Game</h1>
+    <p class="subtitle">Guess the number between your selected range!</p>
+
+    <label for="difficulty">Difficulty:</label>
+    <select id="difficulty">
+      <option value="easy">Easy (1–50)</option>
+      <option value="medium" selected>Medium (1–100)</option>
+      <option value="hard">Hard (1–200)</option>
+    </select>
+
+    <div class="game-status">Attempts left: <span id="attempts">12</span></div>
+
+    <div class="input-section">
+      <input type="number" id="guessInput" placeholder="Enter guess..." min="1" max="200" />
+      <button id="guessBtn">Guess</button>
+    </div>
+
+    <div class="message" id="message">Start guessing 👇</div>
+
+    <div class="previous-guesses" id="previousGuesses"></div>
+
+    <button class="restart-btn" id="restartBtn">Restart Game</button>
+
+    <div id="stats" style="margin-top:15px; font-size:0.9em; color:#94a3b8;">
+      Total Wins: <span id="wins">0</span> | Best Attempts: <span id="best">12</span>
+    </div>
+
+    <!-- Sounds -->
+    <audio id="winSound" src="https://cdn.pixabay.com/download/audio/2023/04/03/audio_f4d89b9572.mp3?filename=game-win-coin-2013.mp3"></audio>
+    <audio id="loseSound" src="https://cdn.pixabay.com/download/audio/2022/03/31/audio_7d2c5b1861.mp3?filename=error-126627.mp3"></audio>
+  </div>
+
+  <script>
+    let secretNumber, attemptsLeft, previousGuesses = [];
+    let wins = localStorage.getItem("wins") || 0;
+    let best = localStorage.getItem("best") || 12;
+
+    const guessInput = document.getElementById("guessInput");
+    const guessBtn = document.getElementById("guessBtn");
+    const message = document.getElementById("message");
+    const attemptsDisplay = document.getElementById("attempts");
+    const previousGuessesDisplay = document.getElementById("previousGuesses");
+    const restartBtn = document.getElementById("restartBtn");
+
+    document.getElementById("wins").textContent = wins;
+    document.getElementById("best").textContent = best;
+
+    function getRandomNumber() {
+      const diff = document.getElementById("difficulty").value;
+      if (diff === "easy") return Math.floor(Math.random() * 50) + 1;
+      if (diff === "hard") return Math.floor(Math.random() * 200) + 1;
+      return Math.floor(Math.random() * 100) + 1;
+    }
+
+    function giveHint(number, guess) {
+      const diff = Math.abs(number - guess);
+      if (guess === number) return "✅ Correct!";
+      if (diff <= 2) return "🔥 Super close!";
+      if (diff <= 5) return " very close!";
+      if (diff <= 10) return "close!";
+      if (diff <= 25) return "😐 Getting there!";
+    }
+
+    function emojiBurst() {
+      const emojis = ["🎉", "✨", "💫", "🌟", "🎊"];
+      for (let i = 0; i < 15; i++) {
+        const emoji = document.createElement("div");
+        emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        emoji.classList.add("emoji");
+        emoji.style.left = Math.random() * 100 + "vw";
+        emoji.style.fontSize = 1 + Math.random() * 1.5 + "rem";
+        document.body.appendChild(emoji);
+        setTimeout(() => emoji.remove(), 2000);
+      }
+    }
+
+    function startGame() {
+      secretNumber = getRandomNumber();
+      attemptsLeft = 12;
+      previousGuesses = [];
+      attemptsDisplay.textContent = attemptsLeft;
+      previousGuessesDisplay.textContent = "";
+      message.textContent = "Start guessing 👇";
+      message.classList.remove("win-animation");
+      guessInput.value = "";
+      guessInput.disabled = false;
+      guessBtn.disabled = false;
+    }
+
+    function updateStats(attemptsUsed) {
+      if (attemptsUsed < best) {
+        best = attemptsUsed;
+        localStorage.setItem("best", best);
+      }
+      localStorage.setItem("wins", wins);
+      document.getElementById("wins").textContent = wins;
+      document.getElementById("best").textContent = best;
+    }
+
+    function handleGuess() {
+      const guess = parseInt(guessInput.value);
+      if (isNaN(guess) || guess < 1) {
+        message.textContent = "⚠️ Enter a valid number!";
+        return;
+      }
+
+      if (previousGuesses.includes(guess)) {
+        message.textContent = `⚠️ You already guessed ${guess}!`;
+        return;
+      }
+
+      previousGuesses.push(guess);
+      attemptsLeft--;
+      attemptsDisplay.textContent = attemptsLeft;
+
+      const hint = giveHint(secretNumber, guess);
+      message.textContent = hint;
+      previousGuessesDisplay.textContent = `Your guesses: ${previousGuesses.join(", ")}`;
+
+      const reactions = [
+        "😏 Is that your final answer?",
+        "🤔 Getting warmer...",
+        "🧠 Trust your instincts!",
+        "😅 Not quite there!",
+        "🔥 You’re close, keep going!"
+      ];
+
+      if (hint.includes("Correct")) {
+        wins++;
+        updateStats(12 - attemptsLeft);
+        emojiBurst();
+        document.getElementById("winSound").play();
+        message.textContent = `🎉 You got it! The number was ${secretNumber}`;
+        message.classList.add("win-animation");
+        endGame();
+      } else if (attemptsLeft === 0) {
+        document.getElementById("loseSound").play();
+        message.textContent = `😢 Out of attempts! The number was ${secretNumber}`;
+        endGame();
+      } else {
+        message.textContent += " " + reactions[Math.floor(Math.random() * reactions.length)];
+      }
+
+      guessInput.value = "";
+    }
+
+    function endGame() {
+      guessInput.disabled = true;
+      guessBtn.disabled = true;
+    }
+
+    // Theme toggle
+    document.getElementById("themeToggle").addEventListener("change", e => {
+      document.body.style.background = e.target.checked
+        ? "linear-gradient(135deg, #f8fafc, #cbd5e1)"
+        : "linear-gradient(135deg, #0f172a, #1e293b, #334155, #0f172a)";
+      document.body.style.color = e.target.checked ? "#0f172a" : "#fff";
+    });
+
+    guessBtn.addEventListener("click", handleGuess);
+    restartBtn.addEventListener("click", startGame);
+    window.addEventListener("load", startGame);
+  </script>
+</body>
+</html>
